@@ -14,7 +14,7 @@ import (
 type InterceptorConfig struct {
 	Version                             string `json:"version"`
 	FilePath                            string // 配置文件路径
-	DownloadDefaultHighest              bool   `json:"defaultHighest"`             // 默认下载最高画质
+	DownloadDefaultHighest              bool   `json:"defaultHighest"`             // 默认下载原始视频
 	DownloadFilenameTemplate            string `json:"downloadFilenameTemplate"`   // 下载文件名模板
 	DownloadPauseWhenDownload           bool   `json:"downloadPauseWhenDownload"`  // 下载时暂停播放
 	DownloadInFrontend                  bool   `json:"downloadInFrontend"`         // 在前端下载

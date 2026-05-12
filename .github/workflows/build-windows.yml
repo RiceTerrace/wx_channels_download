@@ -1,0 +1,68 @@
+name: Build Windows Packages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.20'
+
+      - name: Set build version
+        run: echo "BUILD_VERSION=${GITHUB_REF_NAME}-${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
+      - name: Generate Windows resources (.syso)
+        run: |
+          set -e
+          go run github.com/tc-hib/go-winres@latest make --in ./build/winres.json --arch amd64
+          go run github.com/tc-hib/go-winres@latest make --in ./build/winres.json --arch arm64
+
+      - name: Build Windows packages
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+
+          build_package() {
+            local arch="$1"
+            local arch_label="$2"
+            local package_name="wx_video_download_safe_${BUILD_VERSION}_windows_${arch_label}"
+            local package_dir="dist/${package_name}"
+
+            mkdir -p "${package_dir}"
+            GOOS=windows GOARCH="${arch}" CGO_ENABLED=0 go build \
+              -trimpath \
+              -ldflags "-X main.Mode=release" \
+              -o "${package_dir}/wx_video_download.exe" .
+
+            cp internal/config/config.template.yaml "${package_dir}/config.yaml"
+            cp LICENSE "${package_dir}/LICENSE"
+
+            (
+              cd dist
+              zip -r "${package_name}.zip" "${package_name}"
+            )
+          }
+
+          build_package amd64 x86_64
+          build_package arm64 arm64
+
+      - name: Upload Windows packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-packages-${{ env.BUILD_VERSION }}
+          path: dist/*.zip
+          if-no-files-found: error

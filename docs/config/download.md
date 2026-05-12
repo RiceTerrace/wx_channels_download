@@ -6,14 +6,16 @@ title: 下载配置
 
 通过 `config.yaml` 控制下载行为。
 
-## 默认下载原始视频（已失效）
+## 默认下载原始视频
 
 ```yaml
 download:
-  defaultHighest: false
+  defaultHighest: true
 ```
 
-该配置已失效（保留兼容旧配置），不会影响下载行为。
+是否默认下载原始视频，默认 `true`。
+
+设置为 `false` 后，点击默认下载按钮或执行批量下载时，会优先使用微信返回的第一个转码规格。
 
 ## 下载时的文件名称
 
